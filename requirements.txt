@@ -1,6 +1,6 @@
 aiohttp
 fastapi
-llmapi_cli==1.0.7
+llmapi_cli
 pycryptodome
 pydantic
 uvicorn
