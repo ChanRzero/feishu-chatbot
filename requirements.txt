@@ -4,3 +4,4 @@ llmapi_cli
 pycryptodome
 pydantic
 uvicorn
+openai
