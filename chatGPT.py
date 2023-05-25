@@ -1,6 +1,7 @@
 import os
 import openai
 import json
+import httpx
 
 # 优先读取环境变量
 API_KEY = os.environ.get('ChatGPT_API_KEY')
@@ -31,3 +32,32 @@ class chatGPT35:
             max_tokens=self.max_tokens
         )
         return response['choices'][0].message.content
+
+class MessageTurbo:
+    def __init__(self, prompt):
+        self.model = os.getenv("OPENAI_MODEL", default="gpt-3.5-turbo")
+        self.messages = [{'role': 'assistant',
+                          'content': "AI:你是一个基于" + self.model + "模型的聊天机器人"}, [prompt]],
+        self.temperature = float(os.getenv("OPENAI_TEMPERATURE", default=0))
+        self.frequency_penalty = float(os.getenv("OPENAI_FREQUENCY_PENALTY", default=0))
+        self.presence_penalty = float(os.getenv("OPENAI_PRESENCE_PENALTY", default=0.6))
+        self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", default=2048))
+
+
+async def completions_turbo(message):
+    """Get completions for the message."""
+    # print('message:', message)
+    url = "https://api.openai.com/v1/chat/completions"
+    async with httpx.AsyncClient as client:
+        response = await client.post(
+            url,
+            json=message.dict(),
+            headers={"Authorization": f"Bearer {API_KEY}"},
+            timeout=60,
+        )
+        res = response.json()
+        print('response:', res)
+        error = res.get('error')
+        if error:
+            res['error']['message'] = '出错了，请稍后重试!!!'
+        return res
