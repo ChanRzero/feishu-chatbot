@@ -2,9 +2,15 @@ import os
 import openai
 import json
 
-config = json.load(open('.env.json'))
-app_id = config['openai_app_KEY']
-openai.api_key = app_id
+# 优先读取环境变量
+API_KEY = os.environ.get('ChatGPT_API_KEY')
+# 如果环境变量为空，则读取 config.yaml 文件
+if API_KEY is None:
+    config = json.load(open('.env.json'))
+    API_KEY = config['openai_app_KEY']
+
+openai.api_key = API_KEY
+
 class chatGPT35:
     def __init__(self):
         self.model = os.getenv("OPENAI_MODEL", default="gpt-3.5-turbo")
