@@ -5,3 +5,4 @@ pycryptodome
 pydantic
 uvicorn
 openai
+httpx
