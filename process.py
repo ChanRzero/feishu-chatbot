@@ -217,6 +217,7 @@ processed_message_ids = set()
 @app.post("/")
 async def process(message: LarkMsgType, request: Request, background_tasks: BackgroundTasks):
     plaintext = json.loads(cipher.decrypt_string(message.encrypt))
+    print("plaintext:",plaintext)
     if 'challenge' in plaintext:  # url verification
         return {'challenge': plaintext['challenge']}
 
