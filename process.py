@@ -115,6 +115,7 @@ sender = LarkMsgSender(token_manager)
 
 async def completions_turbo(input: dict):
     """Get completions for the message."""
+    content = None
     reply = ""
     if input['header']['token'] != verification_token:
         return
@@ -130,13 +131,15 @@ async def completions_turbo(input: dict):
     if reply != "":
         await sender.send(reply, input["event"]["message"]["message_id"])
         return
-
+    newMessage = content['text']   #单条消息，新消息
     prompt = Prompt()
-    print('new_message:',json.loads(input['event']['message']['content']['text']))
-    prompt.add_msg(json.loads(input['event']['message']['content']['text']))
-    reply = prompt.generate_prompt()
-    print('Context_message:', reply)
+
+    print('newMessage:', newMessage)
+    prompt.add_msg(newMessage)
+    contextMessage = prompt.generate_prompt()   #上下文消息
+    print('Context_message:', contextMessage)
     chatgpt = chatGPT35()
+    reply = chatgpt.get_response(contextMessage)
     await sender.send(reply, input["event"]["message"]["message_id"])
 
 
