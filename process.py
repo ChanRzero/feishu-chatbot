@@ -136,7 +136,7 @@ async def completions_turbo(input: dict):
     prompt.add_msg(newMessage)
     contextMessage = prompt.generate_prompt()   #上下文消息
     print('Context_message:', contextMessage)
-    message = MessageTurbo(contextMessage)
+    message = MessageTurbo(messages=[chatGPT.ChatMessageTurbo(content=contextMessage)])
     reply = await chatGPT.completions_turbo(message)
     print("gpt:", reply)
     await sender.send(reply, input["event"]["message"]["message_id"])
