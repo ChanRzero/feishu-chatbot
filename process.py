@@ -140,6 +140,7 @@ async def completions_turbo(input: dict):
     print('Context_message:', contextMessage)
     chatgpt = chatGPT35()
     reply = chatgpt.get_response(contextMessage)
+    print("gpt:", reply)
     await sender.send(reply, input["event"]["message"]["message_id"])
 
 
