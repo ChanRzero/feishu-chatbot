@@ -6,7 +6,8 @@ import base64
 import aiohttp
 import asyncio
 
-from chatGPT import chatGPT35
+import chatGPT
+from chatGPT import chatGPT35, MessageTurbo
 
 from llmapi_cli.llmclient import LLMClient
 
@@ -110,9 +111,6 @@ token_manager = TokenManager(app_id=app_id, app_secret=app_secret)
 sender = LarkMsgSender(token_manager)
 
 
-
-
-
 async def completions_turbo(input: dict):
     """Get completions for the message."""
     content = None
@@ -138,8 +136,8 @@ async def completions_turbo(input: dict):
     prompt.add_msg(newMessage)
     contextMessage = prompt.generate_prompt()   #上下文消息
     print('Context_message:', contextMessage)
-    chatgpt = chatGPT35()
-    reply = chatgpt.get_response(contextMessage)
+    message = MessageTurbo(contextMessage)
+    reply = chatGPT.completions_turbo(message)
     print("gpt:", reply)
     await sender.send(reply, input["event"]["message"]["message_id"])
 
@@ -258,18 +256,16 @@ processed_message_ids = set()
 
 @app.post("/")
 async def process(message: LarkMsgType, request: Request, background_tasks: BackgroundTasks):
-
-    plaintext = json.loads(cipher.decrypt_string(message.encrypt)) #对encrypt解密
-    print("plaintext:",plaintext)
-    #plaintext：
+    plaintext = json.loads(cipher.decrypt_string(message.encrypt))  # 对encrypt解密
+    print("plaintext:", plaintext)
+    # plaintext：
     #   "challenge": "ajls384kdjx98XX", // 应用需要在响应中原样返回的值
     #   "token": "xxxxxx", // 即VerificationToken
     #   "type": "url_verification" // 表示这是一个验证请求
 
-    #接收到客户端消息，如果有challenge就响应challenge
+    # 接收到客户端消息，如果有challenge就响应challenge
     if 'challenge' in plaintext:  # url verification
         return {'challenge': plaintext['challenge']}
-
 
     message_id = plaintext['event']['message']['message_id']
     if message_id not in processed_message_ids:
