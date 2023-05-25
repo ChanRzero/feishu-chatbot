@@ -124,7 +124,7 @@ async def completions_turbo(input: dict):
         try:
             content = json.loads(input['event']['message']['content'])
             if 'text' not in content:
-                reply = "不是纯文本消息"
+                reply = "抱歉，我只能接收文本消息哦"
         except ValueError:
             reply = "消息格式错误"
     if reply != "":
@@ -132,12 +132,12 @@ async def completions_turbo(input: dict):
         return
 
     prompt = Prompt()
-    print('new_message:',input['event']['message']['content']['text'])
+    print('new_message:', input['event']['message']['content']['text'])
     prompt.add_msg(input['event']['message']['content']['text'])
-    message = prompt.generate_prompt()
-    print('Context_message:', message)
+    reply = prompt.generate_prompt()
+    print('Context_message:', reply)
     chatgpt = chatGPT35()
-    await sender.send(reply,chatgpt.get_response(message))
+    await sender.send(reply, input["event"]["message"]["message_id"])
 
 
 #
