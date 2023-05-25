@@ -44,12 +44,12 @@ class MessageTurbo:
         self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", default=2048))
 
 
-def completions_turbo(message):
+async def completions_turbo(message):
     """Get completions for the message."""
     # print('message:', message)
     url = "https://api.openai.com/v1/chat/completions"
-    with httpx.AsyncClient as client:
-        response = client.post(
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
             url,
             json=message.dict(),
             headers={"Authorization": f"Bearer {API_KEY}"},
