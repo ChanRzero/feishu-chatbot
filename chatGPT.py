@@ -14,7 +14,7 @@ class chatGPT35:
         self.presence_penalty = float(os.getenv("OPENAI_PRESENCE_PENALTY", default=0.6))
         self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", default=2048))
 
-    async def get_response(self, messages):
+    def get_response(self, messages):
         response = openai.ChatCompletion.create(
             messages=[{'role': 'assistant',
                        'content': self.prompt}, [messages]],
