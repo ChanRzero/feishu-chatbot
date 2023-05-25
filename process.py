@@ -132,8 +132,8 @@ async def completions_turbo(input: dict):
         return
 
     prompt = Prompt()
-    print('new_message:', input['event']['message']['content']['text'])
-    prompt.add_msg(input['event']['message']['content']['text'])
+    print('new_message:',json.loads(input['event']['message']['content']['text']))
+    prompt.add_msg(json.loads(input['event']['message']['content']['text']))
     reply = prompt.generate_prompt()
     print('Context_message:', reply)
     chatgpt = chatGPT35()
