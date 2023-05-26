@@ -136,15 +136,16 @@ class HistoryMessages():
                 content = item['body']['content']
                 result.append({'sender_type': sender_type, 'content': content})
             #将消息体转换为模型需要的格式
+            new_data = []
             for item in result:
-                content = json.loads(item['content'])
-                item['role'] = item.pop('sender_type')
-                if item['role'] == 'app':
-                    item['role'] = 'assistant'
-                content['role'] = item['role']
-                item['content'] = json.dumps(content)
-                result.append(item)
-            return result
+                new_item = {}
+                if item['sender_type'] == 'app':
+                    new_item['role'] = 'assistant'
+                else:
+                    new_item['role'] = item['sender_type']
+                new_item['content'] = json.loads(item['content'])['text']
+                new_data.append(new_item)
+            return new_data
         else:
             print("获取上下文失败")
             print(data)
@@ -190,7 +191,7 @@ async def completions_turbo(input: dict):
     # 获取一个小时前的时间戳
     timestamp = int((datetime.datetime.now() - datetime.timedelta(hours=1)).timestamp())
     # 获取会话id
-    chatId = input['event']['message']['chat_id'] 
+    chatId = input['event']['message']['chat_id']
     # 获取一个小时之内的上下文消息，默认10条
     his_messages = await history_msg.getHistoryMsg(timestamp,chatId)
     # 给机器人知道当前时间
