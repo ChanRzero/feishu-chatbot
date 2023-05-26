@@ -188,12 +188,11 @@ async def completions_turbo(input: dict):
     if reply != "":
         await sender.send(reply, input["event"]["message"]["message_id"])
         return
-    # 获取一个小时前的时间戳
-    timestamp = input["event"]["message"]["create_time"]  # 给定时间戳
+    # 获取20分钟前的时间戳
+    timestamp = int(input["event"]["message"]["create_time"])  # 给定时间戳
     dt = datetime.datetime.fromtimestamp(timestamp)  # 将时间戳转换为 datetime 对象
-    one_hour_ago = dt - datetime.timedelta(hours=1)  # 计算前一个小时的时间
-    one_hour_ago_timestamp = int(one_hour_ago.timestamp())  # 将时间转换为时间戳
-    timestamp = int((datetime.datetime.now() - datetime.timedelta(hours=1)).timestamp())
+    ago = dt - datetime.timedelta(minutes=20)  # 计算20分钟前的时间
+    timestamp = int(ago.timestamp())  # 将时间转换为时间戳
     # 获取会话id
     chatId = input['event']['message']['chat_id']
     # 获取一个小时之内的上下文消息，默认10条
