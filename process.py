@@ -1,3 +1,6 @@
+import datetime
+from typing import List
+
 import httpx
 from Crypto.Cipher import AES
 import hashlib
@@ -7,7 +10,7 @@ import aiohttp
 import asyncio
 
 import chatGPT
-from chatGPT import chatGPT35, MessageTurbo
+from chatGPT import  MessageTurbo
 
 from llmapi_cli.llmclient import LLMClient
 
@@ -98,6 +101,55 @@ class LarkMsgSender():
             pass
 
 
+# 获取会话历史消息
+class HistoryMessages():
+    def __init__(self, token_manager: TokenManager) -> None:
+        self.prefix = "https://open.feishu.cn/open-apis/im/v1/messages"
+        self.page_size = 10
+        self.container_id_type = "chat"
+        self.token_manager = token_manager
+
+    async def getHistoryMsg(self, timestamp, chat_id):
+        url = self.prefix
+        headers = {
+            'Authorization': 'Bearer ' + self.token_manager.get_token(),  # your access token
+            'Content-Type': 'application/json'
+        }
+        params = {
+            'container_id_type': self.container_id_type,
+            'page_size':  self.page_size,
+            'start_time': timestamp,
+            'container_id': chat_id
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=headers) as response:
+                data = await response.json()
+        if (data["code"] == 99991668 or data["code"] == 99991663):  # token expired
+            await self.token_manager.update()
+            await self.getHistoryMsg(timestamp, chat_id)
+        elif (data["code"] == 0):
+            items = data['data']['items']
+            result = []
+            #过滤出需要的响应消息
+            for item in items:
+                sender_type = item['sender']['sender_type']
+                content = item['body']['content']
+                result.append({'sender_type': sender_type, 'content': content})
+            #将消息体转换为模型需要的格式
+            for item in result:
+                content = json.loads(item['content'])
+                item['role'] = item.pop('sender_type')
+                if item['role'] == 'app':
+                    item['role'] = 'assistant'
+                content['role'] = item['role']
+                item['content'] = json.dumps(content)
+                result.append(item)
+            return result
+        else:
+            print("获取上下文失败")
+            print(data)
+            return
+
 # 将下面的参数改为从json文件中读取
 config = json.load(open('.env.json'))
 app_id = config['app_id']
@@ -109,6 +161,12 @@ cipher = AESCipher(encryption_key)
 users_info = {}
 token_manager = TokenManager(app_id=app_id, app_secret=app_secret)
 sender = LarkMsgSender(token_manager)
+history_msg = HistoryMessages(token_manager)
+
+
+
+
+
 
 
 async def completions_turbo(input: dict):
@@ -129,14 +187,22 @@ async def completions_turbo(input: dict):
     if reply != "":
         await sender.send(reply, input["event"]["message"]["message_id"])
         return
-    newMessage = content['text']   #单条消息，新消息
-    prompt = Prompt()
-
-    print('newMessage:', newMessage)
-    prompt.add_msg(newMessage)
-    contextMessage = prompt.generate_prompt()   #上下文消息
-    print('Context_message:', contextMessage)
-    message = MessageTurbo(messages=[chatGPT.ChatMessageTurbo(content=contextMessage)])
+    # 获取一个小时前的时间戳
+    timestamp = int((datetime.datetime.now() - datetime.timedelta(hours=1)).timestamp())
+    # 获取会话id
+    chatId = json.loads(input['event']['message']['chat_id'])
+    # 获取一个小时之内的上下文消息，默认10条
+    his_messages = await history_msg.getHistoryMsg(timestamp,chatId)
+    # 给机器人知道当前时间
+    now = datetime.datetime.now()
+    formatted_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    messages = [{'role': 'system', 'content': '你是一个基于gpt-3.5-turbo模型的聊天机器人，现在的时间为：'+formatted_time}]
+    newMessage = content['text']
+    print('newMessage',newMessage)
+    if his_messages is not None:
+        messages = his_messages
+    messages.append({'role': 'user', 'content': newMessage})
+    message = MessageTurbo(messages=messages)
     reply = await chatGPT.completions_turbo(message)
     print("gpt:", reply)
     await sender.send(reply, input["event"]["message"]["message_id"])
@@ -254,7 +320,7 @@ class LarkMsgType(BaseModel):
 processed_message_ids = set()
 
 
-@app.post("/")
+@app.post("/feishu")
 async def process(message: LarkMsgType, request: Request, background_tasks: BackgroundTasks):
     plaintext = json.loads(cipher.decrypt_string(message.encrypt))  # 对encrypt解密
     print("plaintext:", plaintext)
