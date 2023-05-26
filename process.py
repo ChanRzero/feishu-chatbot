@@ -188,10 +188,10 @@ async def completions_turbo(input: dict):
     if reply != "":
         await sender.send(reply, input["event"]["message"]["message_id"])
         return
-    # 获取20分钟前的时间戳
+    # 获取5分钟前的时间戳
     timestamp = int(input["event"]["message"]["create_time"])  # 给定时间戳
     dt = datetime.datetime.fromtimestamp(timestamp/1000)  # 将时间戳转换为 datetime 对象
-    ago = dt - datetime.timedelta(minutes=20)  # 计算20分钟前的时间
+    ago = dt - datetime.timedelta(minutes=5)  # 计算5分钟前的时间
     timestamp = int(ago.timestamp())  # 将时间转换为时间戳
     # 获取会话id
     chatId = input['event']['message']['chat_id']
