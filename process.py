@@ -203,6 +203,7 @@ async def completions_turbo(input: dict):
     if his_messages is not None:
         messages = his_messages
     messages.append({'role': 'user', 'content': newMessage})
+    print('messages', messages)
     message = MessageTurbo(messages=messages)
     reply = await chatGPT.completions_turbo(message)
     print("gpt:", reply)
