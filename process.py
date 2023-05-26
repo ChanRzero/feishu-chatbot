@@ -190,7 +190,7 @@ async def completions_turbo(input: dict):
     # 获取一个小时前的时间戳
     timestamp = int((datetime.datetime.now() - datetime.timedelta(hours=1)).timestamp())
     # 获取会话id
-    chatId = json.loads(input['event']['message']['chat_id'])
+    chatId = input['event']['message']['chat_id'] 
     # 获取一个小时之内的上下文消息，默认10条
     his_messages = await history_msg.getHistoryMsg(timestamp,chatId)
     # 给机器人知道当前时间
