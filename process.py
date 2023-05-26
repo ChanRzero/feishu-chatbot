@@ -162,7 +162,7 @@ cipher = AESCipher(encryption_key)
 users_info = {}
 token_manager = TokenManager(app_id=app_id, app_secret=app_secret)
 sender = LarkMsgSender(token_manager)
-history_msg = HistoryMessages(token_manager)
+
 
 
 
@@ -193,15 +193,16 @@ async def completions_turbo(input: dict):
     # 获取会话id
     chatId = input['event']['message']['chat_id']
     # 获取一个小时之内的上下文消息，默认10条
+    history_msg = HistoryMessages(token_manager)
     his_messages = await history_msg.getHistoryMsg(timestamp,chatId)
     # 给机器人知道当前时间
     now = datetime.datetime.now()
     formatted_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    messages = [{'role': 'system', 'content': '你是一个基于gpt-3.5-turbo模型的聊天机器人，现在的时间为：'+formatted_time}]
+    messages = [{'role': 'system', 'content': '你是一个基于gpt-3.5-turbo模型的聊天机器人'}]
     newMessage = content['text']
     print('newMessage',newMessage)
     if his_messages is not None:
-        messages = his_messages
+        messages.extend(his_messages)
     messages.append({'role': 'user', 'content': newMessage})
     print('messages', messages)
     message = MessageTurbo(messages=messages)
