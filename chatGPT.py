@@ -67,5 +67,5 @@ async def completions_turbo(message):
         print('response:', res)
         error = res.get('error')
         if error:
-            res['error']['message'] = '出错了，请稍后重试!!!'
-        res.get('choices')[0].get('message').get('content')
+            return '出错了，请稍后重试!!!'
+        return res.get('choices')[0].get('message').get('content')
