@@ -42,7 +42,7 @@ async def completions_turbo(message):
         )
         res = response.json()
         print('response:', res)
-        data = json.loads(res)
+        data = json.dumps(res)
         error = res.get('error')
         if error:
             return '出错了，请稍后重试!!!'
