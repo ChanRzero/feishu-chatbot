@@ -1,4 +1,3 @@
-
 import datetime
 import os
 from typing import Optional, List
@@ -18,8 +17,6 @@ if API_KEY is None:
 openai.api_key = API_KEY
 
 
-
-
 class MessageTurbo(BaseModel):
     model: Optional[str] = Field(default="gpt-3.5-turbo", description="Model name")
     messages: Optional[List] = Field(default=None, description="Messages")
@@ -29,9 +26,7 @@ class MessageTurbo(BaseModel):
     presence_penalty: Optional[float] = Field(default=0.0, description="Presence penalty")
 
 
-async def completions_turbo(message):
-    """Get completions for the message."""
-    # print('message:', message)
+def get_response_turbo(message):
     url = "https://api.openai.com/v1/chat/completions"
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -44,7 +39,17 @@ async def completions_turbo(message):
         print('response:', res)
         data = json.dumps(res)
         json_data = json.loads(data)
-        error = json_data.get('error')
-        if error:
-            return '出错了，请稍后重试!!!'
-        return json_data.get('choices')[0].get('message').get('content')
+        return json_data
+
+
+async def completions_turbo(message):
+    json_data = get_response_turbo(message)
+    print(json_data)
+    for i in range(3):  # 重试3次，如果出错，重新请求一遍
+        if json_data.get('error'):
+            json_data = get_response_turbo(message)
+            if i == 2:
+                return '出错了，请稍后重试！！！'
+        else:
+            break
+    return json_data.get('choices')[0].get('message').get('content')
