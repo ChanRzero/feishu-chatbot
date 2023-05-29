@@ -154,7 +154,7 @@ class HistoryMessages():
 # 获取指定消息
 class getTheMessage:
     def __init__(self, token_manager: TokenManager) -> None:
-        self.prefix = "https://open.feishu.cn/open-apis/im/v1/messages/:"
+        self.prefix = "https://open.feishu.cn/open-apis/im/v1/messages/"
         self.token_manager = token_manager
 
     async def getMsg(self, msg_id):
