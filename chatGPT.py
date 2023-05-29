@@ -26,7 +26,7 @@ class MessageTurbo(BaseModel):
     presence_penalty: Optional[float] = Field(default=0.0, description="Presence penalty")
 
 
-def get_response_turbo(message):
+async def get_response_turbo(message):
     url = "https://api.openai.com/v1/chat/completions"
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -43,11 +43,11 @@ def get_response_turbo(message):
 
 
 async def completions_turbo(message):
-    json_data = get_response_turbo(message)
+    json_data = await get_response_turbo(message)
     print(json_data)
     for i in range(3):  # 重试3次，如果出错，重新请求一遍
         if json_data.get('error'):
-            json_data = get_response_turbo(message)
+            json_data = await get_response_turbo(message)
             if i == 2:
                 return '出错了，请稍后重试！！！'
         else:
