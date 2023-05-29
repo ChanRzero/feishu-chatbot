@@ -125,7 +125,7 @@ class HistoryMessages():
                 data = await response.json()
         if (data["code"] == 99991668 or data["code"] == 99991663):  # token expired
             await self.token_manager.update()
-            await self.getHistoryMsg(timestamp, chat_id)
+            await self.getHistoryMsg(start_time,end_time, chat_id)
         elif (data["code"] == 0):
             items = data['data']['items']
             result = []
